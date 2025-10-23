@@ -6,6 +6,7 @@ import warnings
 import sap.cli.core
 import sap.cli.helpers
 import sap.rest.gcts.simple
+from sap.cli.gcts_tasks import GCTSTaskEngine
 from sap.rest.gcts.sugar import (
     abap_modifications_disabled,
     SugarOperationProgress,
@@ -662,16 +663,15 @@ def clone(connection, args):
                 console.printerr(str(exc))
                 return 1
     else:
+        task_engine = GCTSTaskEngine(connection)
         try:
             with sap.cli.helpers.ConsoleHeartBeat(console, args.heartbeat):
-                task = sap.rest.gcts.simple.schedule_clone(repo)
-
-                if isinstance(task, RepositoryTask) and task.tid:
+                task = task_engine.schedule_clone_task(repo)
+                if hasattr(task, 'tid') and task.tid:
                     if args.wait_for_ready > 0:
-                        sap.rest.gcts.simple.wait_for_task_execution(repo, task.tid, args.wait_for_ready,
-                                                                     args.pull_period)
+                        task_engine.wait_for_task(repo, task.tid, args.wait_for_ready, args.pull_period)
                     else:
-                        console.printout(f'Task {task.tid} created for repository {repo.rid}. You can check the task status manually with the command "gcts task_info --tid {task.tid} {repo.rid} "')
+                        console.printout(f'Task {task.tid} created for repository {repo.rid}. You can check the task status manually with the command "gcts task_info --tid {task.tid} {repo.rid} ")')
                         return 0
                 else:
                     console.printout('Clone request responded with an error. No task found!')
