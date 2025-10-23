@@ -14,11 +14,16 @@ class GCTSTaskEngine:
     def __init__(self, connection):
         self.connection = connection
 
-    def schedule_clone_task(self, repo):
-        """
-        Schedule a clone task for the given repository. Returns a RepositoryTask object or None.
-        """
-        return repo.schedule_clone()
+        def schedule_clone_task(self, repo_or_id, use_repoid=False):
+            """
+            Schedule a clone task for the given repository or repository id. Returns a RepositoryTask object or None.
+            """
+            if use_repoid:
+                from sap.rest.gcts.remote_repo import Repository
+                repo = Repository(self.connection, repo_or_id)
+            else:
+                repo = repo_or_id
+            return repo.schedule_clone()
 
     def wait_for_task(self, repo, task_id, wait_for_ready, pull_period):
         """
