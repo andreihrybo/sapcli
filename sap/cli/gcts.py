@@ -24,7 +24,9 @@ from sap.rest.errors import HTTPRequestError
 from sap.cli.gcts_task import CommandGroup as TaskCommandGroup
 from sap.cli.gcts_utils import (
     dump_gcts_messages,
-    gcts_exception_handler
+    gcts_exception_handler,
+    get_activity_rc,
+    print_gcts_task_info,
 )
 
 
@@ -57,28 +59,13 @@ def get_repository(connection, package):
     return Repository(connection, package)
 
 
-def get_activity_rc(repo, operation: RepoActivitiesQueryParams.Operation):
-    """Get the return code of the operation"""
-
-    activities_params = RepoActivitiesQueryParams().set_operation(operation.value)
-    try:
-        activities_list = repo.activities(activities_params)
-    except HTTPRequestError as exc:
-        raise SAPCliError(f'Unable to obtain activities of repository: "{repo.rid}"\n{exc}') from exc
-
-    if not activities_list:
-        raise SAPCliError(f'Expected {operation.value} activity not found! Repository: "{repo.rid}"')
-
-    return int(activities_list[0]['rc'])
-
-
 def _wait_for_clone_task(console, repo, task, args):
     try:
         with sap.cli.helpers.ConsoleHeartBeat(console, args.heartbeat):
             task = sap.rest.gcts.simple.wait_for_task_execution(task,
                                                                 args.wait_for_ready,
                                                                 args.poll_period,
-                                                                sap.cli.helpers.print_gcts_task_info)
+                                                                print_gcts_task_info)
         console.printout(f'CLONE task "{task.tid}" has finished.')
 
         repo.wipe_data()
