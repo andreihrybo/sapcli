@@ -98,7 +98,7 @@ def get_activity_rc(repo, operation: RepoActivitiesQueryParams.Operation):
 def is_cloned_activity_success(console, repo: Repository) -> bool:
     """Check if the cloned activity is successful"""
     clone_rc = get_activity_rc(repo, RepoActivitiesQueryParams.Operation.CLONE)
-    if clone_rc != Repository.ActivityReturnCode.CLONE_SUCCESS.value:
+    if clone_rc > Repository.ActivityReturnCode.CLONE_SUCCESS.value:
         console.printerr(f'Clone process failed with return code: {clone_rc}!')
         return False
     return True
@@ -107,7 +107,7 @@ def is_cloned_activity_success(console, repo: Repository) -> bool:
 def is_checkout_activity_success(console, repo: Repository) -> bool:
     """Check if the checkout activity is successful"""
     checkout_rc = get_activity_rc(repo, RepoActivitiesQueryParams.Operation.BRANCH_SW)
-    if checkout_rc != Repository.ActivityReturnCode.BRANCH_SW_SUCCES.value:
+    if checkout_rc > Repository.ActivityReturnCode.BRANCH_SW_SUCCES.value:
         console.printerr(f'Checkout process failed with return code: {checkout_rc}!')
         return False
     return True

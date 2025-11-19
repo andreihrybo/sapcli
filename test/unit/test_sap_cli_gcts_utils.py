@@ -83,8 +83,9 @@ class TestIsCheckoutActivitySuccess(ConsoleOutputTestCase, unittest.TestCase):
 
     @patch('sap.cli.gcts_utils.get_activity_rc')
     def test_is_checkout_activity_success_unsuccessful(self, mock_get_activity_rc):
-        """Test is_checkout_activity_success when checkout fails (return code != 4)"""
-        mock_get_activity_rc.return_value = 1
+        """Test is_checkout_activity_success when checkout fails (return code > 4)"""
+        code = 5
+        mock_get_activity_rc.return_value = code
 
         result = is_checkout_activity_success(self.console, self.mock_repo)
 
@@ -96,7 +97,7 @@ class TestIsCheckoutActivitySuccess(ConsoleOutputTestCase, unittest.TestCase):
 
         self.assertFalse(result)
 
-        self.assertConsoleContents(console=self.console, stderr='Checkout process failed with return code: 1!\n')
+        self.assertConsoleContents(console=self.console, stderr=f'Checkout process failed with return code: {code}!\n')
 
 
 class TestIsClonedActivitySuccess(ConsoleOutputTestCase, unittest.TestCase):
@@ -122,7 +123,8 @@ class TestIsClonedActivitySuccess(ConsoleOutputTestCase, unittest.TestCase):
 
     @patch('sap.cli.gcts_utils.get_activity_rc')
     def test_is_cloned_activity_success_unsuccessful(self, mock_get_activity_rc):
-        mock_get_activity_rc.return_value = 1
+        code = 5
+        mock_get_activity_rc.return_value = code
 
         result = is_cloned_activity_success(self.console, self.mock_repo)
 
@@ -134,7 +136,7 @@ class TestIsClonedActivitySuccess(ConsoleOutputTestCase, unittest.TestCase):
 
         self.assertFalse(result)
 
-        self.assertConsoleContents(console=self.console, stderr='Clone process failed with return code: 1!\n')
+        self.assertConsoleContents(console=self.console, stderr=f'Clone process failed with return code: {code}!\n')
 
 
 class TestGetActivityRc(unittest.TestCase):
