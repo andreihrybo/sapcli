@@ -130,7 +130,9 @@ def clone_with_task(connection, url, rid, vsid='6IT', start_dir='src/', vcs_toke
     if repo.is_cloned:
         if progress_consumer:
             progress_consumer.progress_message(f'Not cloning the repository "{repo.rid}": already performed.')
+
         return repo
+
     with (
         abap_modifications_disabled(repo, progress_consumer) if no_import else context_stub(),
         buffer_only_enabled(repo, progress_consumer) if buffer_only else context_stub()
