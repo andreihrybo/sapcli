@@ -3,7 +3,8 @@
 import unittest
 from unittest.mock import patch, Mock
 from test.unit.mock import (
-    ConsoleOutputTestCase
+    ConsoleOutputTestCase,
+    PatcherTestCase,
 )
 from sap.cli.gcts_utils import (
     print_gcts_task_info,
@@ -13,6 +14,8 @@ from sap.cli.gcts_utils import (
     print_gcts_message,
     dump_gcts_messages,
     gcts_exception_handler,
+    ConsoleSugarOperationProgress,
+    TaskOperationProgress,
 )
 from sap.rest.errors import HTTPRequestError
 from sap.rest.gcts.errors import SAPCliError, GCTSRequestError
@@ -397,3 +400,101 @@ class TestGCTSExceptionHandler(unittest.TestCase):
         result = test_func(1, 2, kwarg1=3)
         self.assertEqual(result, 6)
         mock_get_console.assert_not_called()
+
+
+class TestgCTSConsoleSugarOperationProgress(PatcherTestCase, ConsoleOutputTestCase):
+
+    def setUp(self):
+        super().setUp()
+        ConsoleOutputTestCase.setUp(self)
+
+        assert self.console is not None
+
+        self.patch_console(console=self.console)
+
+    def test_progress_handle_update(self):
+        progress = ConsoleSugarOperationProgress(self.console)
+        progress.update('My message')
+
+        self.assertConsoleContents(self.console, stdout='My message\n')
+
+
+class TestTaskOperationProgress(ConsoleOutputTestCase, unittest.TestCase):
+    """Test TaskOperationProgress class"""
+
+    def setUp(self):
+        super().setUp()
+        self.progress = TaskOperationProgress(self.console)
+
+    def test_instance_has_all_methods(self):
+        """Test that instance has all required methods"""
+        self.assertTrue(hasattr(self.progress, 'update_task'))
+        self.assertTrue(hasattr(self.progress, 'progress_message'))
+        self.assertTrue(hasattr(self.progress, 'progress_error'))
+        self.assertTrue(hasattr(self.progress, '_handle_updated'))
+        self.assertTrue(callable(getattr(self.progress, 'update_task')))
+        self.assertTrue(callable(getattr(self.progress, 'progress_message')))
+        self.assertTrue(callable(getattr(self.progress, 'progress_error')))
+        self.assertTrue(callable(getattr(self.progress, '_handle_updated')))
+
+    @patch('sap.cli.gcts_utils.print_gcts_task_info')
+    def test_update_task_with_error_msg(self, mock_print_gcts_task_info):
+        """Test update_task method with error message"""
+        error_msg = 'Task failed'
+        task = None
+
+        self.progress.update_task(error_msg, task)
+
+        mock_print_gcts_task_info.assert_called_once_with(error_msg, task)
+
+    @patch('sap.cli.gcts_utils.print_gcts_task_info')
+    def test_update_task_with_task(self, mock_print_gcts_task_info):
+        """Test update_task method with task dict"""
+        error_msg = None
+        task = {'tid': '123', 'status': 'RUNNING'}
+
+        self.progress.update_task(error_msg, task)
+
+        mock_print_gcts_task_info.assert_called_once_with(error_msg, task)
+
+    @patch('sap.cli.gcts_utils.print_gcts_task_info')
+    def test_update_task_with_both_none(self, mock_print_gcts_task_info):
+        """Test update_task method with both parameters None"""
+        self.progress.update_task(None, None)
+
+        mock_print_gcts_task_info.assert_called_once_with(None, None)
+
+    def test_progress_message(self):
+        """Test progress_message method prints to console"""
+        message = 'Progress message'
+
+        self.progress.progress_message(message)
+
+        self.assertConsoleContents(console=self.console, stdout=f'{message}\n', stderr='')
+
+    def test_progress_error(self):
+        """Test progress_error method prints to console"""
+        message = 'Error message'
+
+        self.progress.progress_error(message)
+
+        self.assertConsoleContents(console=self.console, stdout='', stderr=f'{message}\n')
+
+    def test_handle_updated(self):
+        """Test _handle_updated method prints to console"""
+        message = 'Updated message'
+        recover_message = 'Recover message'
+
+        self.progress._handle_updated(message, recover_message)
+
+        self.assertConsoleContents(console=self.console, stdout=f'{message}\n', stderr='')
+
+    def test_handle_updated_via_update(self):
+        """Test _handle_updated is called via update method from base class"""
+        message = 'Update via base class'
+        recover_message = 'Recover message'
+
+        self.progress.update(message, recover_message)
+
+        self.assertConsoleContents(console=self.console, stdout=f'{message}\n', stderr='')
+        self.assertEqual(self.progress.recover_message, recover_message)

@@ -3,7 +3,7 @@ import sap.cli.core
 from sap.rest.gcts.errors import GCTSRequestError, SAPCliError
 from sap.rest.gcts.remote_repo import Repository, RepoActivitiesQueryParams
 from sap.rest.errors import HTTPRequestError
-from sap.rest.gcts.sugar import LogTaskOperationProgress
+from sap.rest.gcts.sugar import LogTaskOperationProgress, SugarOperationProgress
 from sap import get_logger
 from sap.cli.core import PrintConsole
 
@@ -135,7 +135,7 @@ class TaskOperationProgress(LogTaskOperationProgress):
 
     # for context logging
     def _handle_updated(self, message, recover_message):
-        _mod_log().info(message)
+        self._console.printout(message)
 
     # for task progress logging
     def progress_message(self, message: str):
@@ -143,3 +143,14 @@ class TaskOperationProgress(LogTaskOperationProgress):
 
     def progress_error(self, message: str):
         self._console.printerr(message)
+
+
+class ConsoleSugarOperationProgress(SugarOperationProgress):
+    """Handler for progress message of sugar operations"""
+
+    def __init__(self, console):
+        super().__init__()
+        self._console = console
+
+    def _handle_updated(self, message, recover_message):
+        self._console.printout(message)

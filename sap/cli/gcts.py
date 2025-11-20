@@ -8,7 +8,6 @@ import sap.cli.helpers
 import sap.rest.gcts.simple
 from sap.rest.gcts.sugar import (
     abap_modifications_disabled,
-    SugarOperationProgress,
     temporary_switched_branch
 )
 from sap.rest.gcts.remote_repo import (
@@ -26,6 +25,7 @@ from sap.cli.gcts_utils import (
     dump_gcts_messages,
     gcts_exception_handler,
     TaskOperationProgress,
+    ConsoleSugarOperationProgress,
     is_cloned_activity_success,
     is_checkout_activity_success,
 )
@@ -874,17 +874,6 @@ def commit(connection, args):
         console.printout(f'The transport "{args.corrnr}" has been committed')
 
     return 0
-
-
-class ConsoleSugarOperationProgress(SugarOperationProgress):
-    """Handler for progress message of sugar operations"""
-
-    def __init__(self, console):
-        super().__init__()
-        self._console = console
-
-    def _handle_updated(self, message, recover_message):
-        self._console.printout(message)
 
 
 @BranchCommandGroup.argument('-o', '--output', default=None,

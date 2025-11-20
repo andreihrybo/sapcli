@@ -2684,23 +2684,6 @@ class TestgCTSDeleteSystemConfigProperty(PatcherTestCase, ConsoleOutputTestCase)
         self.assertConsoleContents(self.console, stderr='Request error\n')
 
 
-class TestgCTSConsoleSugarOperationProgress(PatcherTestCase, ConsoleOutputTestCase):
-
-    def setUp(self):
-        super().setUp()
-        ConsoleOutputTestCase.setUp(self)
-
-        assert self.console is not None
-
-        self.patch_console(console=self.console)
-
-    def test_progress_handle_update(self):
-        progress = sap.cli.gcts.ConsoleSugarOperationProgress(self.console)
-        progress.update('My message')
-
-        self.assertConsoleContents(self.console, stdout='My message\n')
-
-
 class TestgCTSUpdateFilesystem(PatcherTestCase, ConsoleOutputTestCase):
 
     def setUp(self):
